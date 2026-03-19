@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenClaw Admin Dashboard</title>
+  <style>
+    /* ── Reset & Variables ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --surface2:  #22263a;
+      --border:    #2e3251;
+      --accent:    #ff6b35;
+      --accent2:   #f7c59f;
+      --green:     #22c55e;
+      --yellow:    #f59e0b;
+      --red:       #ef4444;
+      --blue:      #3b82f6;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --radius:    10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+    }
+
+    .logo {
+      padding: 0 20px 24px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo span { opacity: 0.6; font-size: 12px; display: block; color: var(--muted); margin-top: 2px; }
+
+    .nav { padding: 12px 0; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 0;
+      font-size: 14px;
+      color: var(--muted);
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--surface2); color: var(--accent); border-left-color: var(--accent); }
+    .nav-icon { font-size: 18px; width: 24px; text-align: center; }
+
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      padding: 28px;
+      max-width: 1200px;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-title { font-size: 22px; font-weight: 600; }
+    .page-subtitle { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Cards ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .stat-sub   { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .stat-green  { color: var(--green); }
+    .stat-yellow { color: var(--yellow); }
+    .stat-accent { color: var(--accent); }
+    .stat-blue   { color: var(--blue); }
+
+    /* ── Table ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-title { font-size: 15px; font-weight: 600; }
+    .card-body { padding: 0; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      font-size: 12px; color: var(--muted);
+      text-align: left; padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      text-transform: uppercase;
+    }
+    td {
+      padding: 12px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-green  { background: rgba(34,197,94,0.15);  color: var(--green); }
+    .badge-red    { background: rgba(239,68,68,0.15);   color: var(--red); }
+    .badge-yellow { background: rgba(245,158,11,0.15);  color: var(--yellow); }
+    .badge-blue   { background: rgba(59,130,246,0.15);  color: var(--blue); }
+    .badge-muted  { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; border: none;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger  { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .btn-success { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+    /* ── Auth screen ── */
+    #auth-screen {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+    }
+    .auth-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 360px;
+      text-align: center;
+    }
+    .auth-logo { font-size: 40px; margin-bottom: 12px; }
+    .auth-title { font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+    .auth-sub   { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+    .auth-input {
+      width: 100%; padding: 10px 14px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .auth-input:focus { outline: none; border-color: var(--accent); }
+    .auth-error { font-size: 13px; color: var(--red); margin-bottom: 8px; }
+
+    /* ── Forms / Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 50;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      width: 420px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; }
+    .form-row { margin-bottom: 14px; }
+    .form-label { font-size: 12px; color: var(--muted); margin-bottom: 5px; display: block; }
+    .form-input, .form-select {
+      width: 100%; padding: 9px 12px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 13px;
+    }
+    .form-input:focus, .form-select:focus { outline: none; border-color: var(--accent); }
+    .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+    /* ── Tabs ── */
+    .tabs { display: none; }
+    .tabs.active { display: block; }
+
+    /* ── Events feed ── */
+    .event-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .event-item:last-child { border-bottom: none; }
+    .event-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent); margin-top: 5px; flex-shrink: 0;
+    }
+    .event-text { flex: 1; }
+    .event-time { color: var(--muted); font-size: 11px; white-space: nowrap; }
+
+    /* ── Logs textarea ── */
+    .log-output {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px;
+      font-family: monospace; font-size: 12px;
+      color: #9ca3af; white-space: pre-wrap;
+      max-height: 300px; overflow-y: auto;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 18px;
+      font-size: 14px; z-index: 200;
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.3s;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { border-color: var(--green); color: var(--green); }
+    #toast.error   { border-color: var(--red);   color: var(--red); }
+
+    /* ── Misc ── */
+    .empty { padding: 32px; text-align: center; color: var(--muted); font-size: 14px; }
+    .credit-bar-wrap { width: 80px; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .credit-bar { height: 100%; background: var(--green); border-radius: 99px; transition: width 0.3s; }
+    .credit-bar.warn { background: var(--yellow); }
+    .credit-bar.crit { background: var(--red); }
+  </style>
+</head>
+<body>
+
+<!-- ── Auth Screen ── -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">🦞</div>
+    <div class="auth-title">OpenClaw Admin</div>
+    <div class="auth-sub">Enter your admin password to continue</div>
+    <div id="auth-error" class="auth-error" style="display:none"></div>
+    <input id="auth-input" type="password" class="auth-input" placeholder="Admin password" />
+    <button class="btn btn-primary" style="width:100%" onclick="login()">Sign In</button>
+  </div>
+</div>
+
+<!-- ── App Shell ── -->
+<div class="layout" id="app" style="display:none">
+  <aside class="sidebar">
+    <div class="logo">🦞 OpenClaw <span>Business Dashboard</span></div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="showTab('overview')" id="nav-overview">
+        <span class="nav-icon">📊</span> Overview
+      </div>
+      <div class="nav-item" onclick="showTab('clients')" id="nav-clients">
+        <span class="nav-icon">👥</span> Clients
+      </div>
+      <div class="nav-item" onclick="showTab('leads')" id="nav-leads">
+        <span class="nav-icon">🎯</span> Leads
+        <span id="lead-badge" style="display:none; background:var(--accent); color:#fff; font-size:10px; border-radius:99px; padding:1px 6px; margin-left:auto;"></span>
+      </div>
+      <div class="nav-item" onclick="showTab('payments')" id="nav-payments">
+        <span class="nav-icon">💰</span> Payments
+      </div>
+      <div class="nav-item" onclick="showTab('events')" id="nav-events">
+        <span class="nav-icon">🔔</span> Events
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+
+    <!-- ── Overview Tab ── -->
+    <div class="tabs active" id="tab-overview">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard Overview</div>
+          <div class="page-subtitle" id="overview-updated">Loading…</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadAll()">↻ Refresh</button>
+      </div>
+
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Clients</div>
+          <div class="stat-value stat-accent" id="s-clients">—</div>
+          <div class="stat-sub" id="s-containers">… containers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Monthly Revenue (MRR)</div>
+          <div class="stat-value stat-green" id="s-mrr">—</div>
+          <div class="stat-sub" id="s-cost">Cost: $—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Gross Margin</div>
+          <div class="stat-value stat-blue" id="s-margin">—</div>
+          <div class="stat-sub" id="s-margin-pct">—% profit</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Collected (This Month)</div>
+          <div class="stat-value stat-yellow" id="s-collected">—</div>
+          <div class="stat-sub" id="s-leads-new">— new leads</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Recent Activity</div>
+        </div>
+        <div class="card-body" id="events-feed" style="padding:16px 20px">
+          <div class="empty">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Clients Tab ── -->
+    <div class="tabs" id="tab-clients">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Clients</div>
+          <div class="page-subtitle">Manage all active AI assistant subscriptions</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="loadClients()">↻ Refresh</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Tier</th>
+                <th>Status</th>
+                <th>Credits</th>
+                <th>Container</th>
+                <th>Since</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clients-table">
+              <tr><td colspan="7" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Leads Tab ── -->
+    <div class="tabs" id="tab-leads">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Leads</div>
+          <div class="page-subtitle">Interested prospects from your landing page</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadLeads()">↻ Refresh</button>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-ghost btn-sm" onclick="filterLeads('')">All</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterLeads('new')">🆕 New</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterLeads('contacted')">📞 Contacted</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterLeads('converted')">✅ Converted</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterLeads('lost')">❌ Lost</button>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>Tier</th>
+                <th>Status</th>
+                <th>Source</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leads-table">
+              <tr><td colspan="7" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Payments Tab ── -->
+    <div class="tabs" id="tab-payments">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Payments</div>
+          <div class="page-subtitle">Manual payment records and top-ups</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadPayments()">↻ Refresh</button>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Reference</th>
+                <th>Note</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="payments-table">
+              <tr><td colspan="6" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Events Tab ── -->
+    <div class="tabs" id="tab-events">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Event Log</div>
+          <div class="page-subtitle">All system and admin actions</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadEvents()">↻ Refresh</button>
+      </div>
+
+      <div class="card" id="events-card">
+        <div class="card-body" style="padding:16px 20px" id="events-list">
+          <div class="empty">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Topup Modal ── -->
+<div class="modal-overlay" id="modal-topup">
+  <div class="modal">
+    <div class="modal-title">💰 Top Up Credits</div>
+    <div class="form-row">
+      <label class="form-label">Client</label>
+      <input class="form-input" id="topup-name" readonly />
+    </div>
+    <div class="form-row">
+      <label class="form-label">Amount ($)</label>
+      <input class="form-input" id="topup-amount" type="number" min="1" placeholder="20" />
+    </div>
+    <div class="form-row">
+      <label class="form-label">Payment Method</label>
+      <select class="form-select" id="topup-method">
+        <option value="">Select…</option>
+        <option>Bank Transfer</option>
+        <option>PayPal</option>
+        <option>Stripe</option>
+        <option>Cash</option>
+        <option>Crypto</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Reference / Note</label>
+      <input class="form-input" id="topup-ref" placeholder="Transaction ID or note" />
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-topup')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTopup()">Apply Top-Up</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Logs Modal ── -->
+<div class="modal-overlay" id="modal-logs">
+  <div class="modal" style="width:560px">
+    <div class="modal-title">📋 Container Logs: <span id="logs-name"></span></div>
+    <div class="log-output" id="logs-output">Loading…</div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-logs')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Lead Status Modal ── -->
+<div class="modal-overlay" id="modal-lead">
+  <div class="modal">
+    <div class="modal-title">Update Lead</div>
+    <input type="hidden" id="lead-id" />
+    <div class="form-row">
+      <label class="form-label">Status</label>
+      <select class="form-select" id="lead-status">
+        <option value="new">🆕 New</option>
+        <option value="contacted">📞 Contacted</option>
+        <option value="converted">✅ Converted</option>
+        <option value="lost">❌ Lost</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Note</label>
+      <input class="form-input" id="lead-note" placeholder="Any notes…" />
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-lead')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLead()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────
+//  State & Config
+// ─────────────────────────────────────────────────────────
+let PASSWORD = "";
+let allLeads = [];
+
+// ─────────────────────────────────────────────────────────
+//  Auth
+// ─────────────────────────────────────────────────────────
+async function login() {
+  const pw = document.getElementById("auth-input").value.trim();
+  if (!pw) return;
+  const res = await fetch("/api/stats", { headers: { "X-Admin-Password": pw } });
+  if (res.ok) {
+    PASSWORD = pw;
+    document.getElementById("auth-screen").style.display = "none";
+    document.getElementById("app").style.display = "flex";
+    loadAll();
+  } else {
+    document.getElementById("auth-error").textContent = "Invalid password";
+    document.getElementById("auth-error").style.display = "block";
+  }
+}
+
+document.getElementById("auth-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") login();
+});
+
+// ─────────────────────────────────────────────────────────
+//  API helpers
+// ─────────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    ...opts,
+    headers: { "X-Admin-Password": PASSWORD, "Content-Type": "application/json", ...(opts.headers || {}) },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ─────────────────────────────────────────────────────────
+//  Navigation
+// ─────────────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll(".tabs").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("tab-" + name).classList.add("active");
+  document.getElementById("nav-" + name).classList.add("active");
+
+  if (name === "clients")  loadClients();
+  if (name === "leads")    loadLeads();
+  if (name === "payments") loadPayments();
+  if (name === "events")   loadEvents();
+}
+
+// ─────────────────────────────────────────────────────────
+//  Load all (overview)
+// ─────────────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const stats = await api("/api/stats");
+    const events = await api("/api/events");
+
+    // Stat cards
+    document.getElementById("s-clients").textContent = stats.clients.total;
+    document.getElementById("s-containers").textContent =
+      `${stats.containers.running} / ${stats.containers.total} running`;
+    document.getElementById("s-mrr").textContent = "$" + stats.revenue.mrr;
+    document.getElementById("s-cost").textContent = "Cost: $" + stats.revenue.mrc;
+    document.getElementById("s-margin").textContent = "$" + stats.revenue.margin;
+    const pct = stats.revenue.mrr > 0
+      ? Math.round((stats.revenue.margin / stats.revenue.mrr) * 100)
+      : 0;
+    document.getElementById("s-margin-pct").textContent = pct + "% profit";
+    document.getElementById("s-collected").textContent = "$" + (stats.revenue.collected_this_month || 0).toFixed(2);
+
+    const newLeads = (stats.leads.find(l => l.status === "new") || {}).n || 0;
+    document.getElementById("s-leads-new").textContent = newLeads + " new leads";
+    if (newLeads > 0) {
+      document.getElementById("lead-badge").textContent = newLeads;
+      document.getElementById("lead-badge").style.display = "inline";
+    }
+
+    document.getElementById("overview-updated").textContent =
+      "Updated " + new Date().toLocaleTimeString();
+
+    // Events feed
+    renderEventFeed(events, "events-feed");
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  Clients
+// ─────────────────────────────────────────────────────────
+async function loadClients() {
+  const tbody = document.getElementById("clients-table");
+  tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading…</td></tr>';
+  try {
+    const clients = await api("/api/clients");
+    if (!clients.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">No clients yet. Use add-claw.sh to add your first client.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = clients.map(c => {
+      const pct = c.limit && c.limit_remaining !== null
+        ? Math.round((c.limit_remaining / c.limit) * 100) : null;
+      const barClass = pct === null ? "" : pct > 50 ? "" : pct > 20 ? "warn" : "crit";
+      const statusBadge = c.disabled
+        ? '<span class="badge badge-red">Paused</span>'
+        : c.container === "running"
+        ? '<span class="badge badge-green">Running</span>'
+        : '<span class="badge badge-yellow">Stopped</span>';
+      const tierColor = c.tier === "premium" ? "badge-blue" : c.tier === "pro" ? "badge-yellow" : "badge-muted";
+      return `<tr>
+        <td><strong>${c.name}</strong></td>
+        <td><span class="badge ${tierColor}">${c.tier}</span></td>
+        <td>${statusBadge}</td>
+        <td>
+          ${pct !== null ? `
+            <div style="display:flex;align-items:center;gap:6px">
+              <div class="credit-bar-wrap"><div class="credit-bar ${barClass}" style="width:${pct}%"></div></div>
+              <span style="font-size:11px;color:var(--muted)">$${(c.limit_remaining||0).toFixed(1)} left</span>
+            </div>` : '<span style="color:var(--muted)">—</span>'}
+        </td>
+        <td style="font-size:11px;color:var(--muted)">${c.uptime || "—"}</td>
+        <td style="font-size:11px;color:var(--muted)">${c.created_at ? c.created_at.slice(0,10) : "—"}</td>
+        <td>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="openTopup('${c.name}')">💰 Top-up</button>
+            ${c.disabled || c.container !== 'running'
+              ? `<button class="btn btn-success btn-sm" onclick="clientAction('${c.name}','resume')">▶ Resume</button>`
+              : `<button class="btn btn-danger btn-sm" onclick="clientAction('${c.name}','pause')">⏸ Pause</button>`}
+            <button class="btn btn-ghost btn-sm" onclick="openLogs('${c.name}')">📋 Logs</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join("");
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">Error: ${e.message}</td></tr>`;
+  }
+}
+
+async function clientAction(name, action) {
+  try {
+    await api(`/api/clients/${name}/${action}`, { method: "POST" });
+    toast(`${name} ${action}d`, "success");
+    loadClients();
+  } catch (e) {
+    toast(e.message, "error");
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  Top-up modal
+// ─────────────────────────────────────────────────────────
+function openTopup(name) {
+  document.getElementById("topup-name").value = name;
+  document.getElementById("topup-amount").value = "";
+  document.getElementById("topup-method").value = "";
+  document.getElementById("topup-ref").value = "";
+  openModal("modal-topup");
+}
+
+async function submitTopup() {
+  const name   = document.getElementById("topup-name").value;
+  const amount = document.getElementById("topup-amount").value;
+  const method = document.getElementById("topup-method").value;
+  const ref    = document.getElementById("topup-ref").value;
+  if (!amount) return toast("Enter an amount", "error");
+  try {
+    await api(`/api/clients/${name}/topup`, {
+      method: "POST",
+      body: JSON.stringify({ amount: parseFloat(amount), method, reference: ref }),
+    });
+    toast(`$${amount} added to ${name}`, "success");
+    closeModal("modal-topup");
+    loadClients();
+  } catch (e) {
+    toast(e.message, "error");
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  Logs modal
+// ─────────────────────────────────────────────────────────
+async function openLogs(name) {
+  document.getElementById("logs-name").textContent = name;
+  document.getElementById("logs-output").textContent = "Loading…";
+  openModal("modal-logs");
+  try {
+    const data = await api(`/api/clients/${name}/logs`);
+    document.getElementById("logs-output").textContent = data.logs || "(no logs)";
+  } catch (e) {
+    document.getElementById("logs-output").textContent = "Error: " + e.message;
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  Leads
+// ─────────────────────────────────────────────────────────
+async function loadLeads() {
+  allLeads = [];
+  const tbody = document.getElementById("leads-table");
+  tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading…</td></tr>';
+  try {
+    allLeads = await api("/api/leads");
+    renderLeads(allLeads);
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function filterLeads(status) {
+  const filtered = status ? allLeads.filter(l => l.status === status) : allLeads;
+  renderLeads(filtered);
+}
+
+function renderLeads(leads) {
+  const tbody = document.getElementById("leads-table");
+  if (!leads.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No leads yet</td></tr>';
+    return;
+  }
+  const statusMap = { new: "badge-yellow", contacted: "badge-blue", converted: "badge-green", lost: "badge-red" };
+  tbody.innerHTML = leads.map(l => `<tr>
+    <td><strong>${esc(l.name)}</strong>${l.message ? `<br><span style="font-size:11px;color:var(--muted)">${esc(l.message.slice(0,60))}</span>` : ""}</td>
+    <td style="font-size:12px">${esc(l.email||"")}${l.telegram ? `<br>@${esc(l.telegram)}` : ""}</td>
+    <td><span class="badge badge-muted">${l.tier||"standard"}</span></td>
+    <td><span class="badge ${statusMap[l.status]||"badge-muted"}">${l.status}</span></td>
+    <td style="font-size:11px;color:var(--muted)">${l.source||"—"}</td>
+    <td style="font-size:11px;color:var(--muted)">${l.created_at?l.created_at.slice(0,10):"—"}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="openLeadModal(${l.id},'${l.status}','${esc(l.message||"")}')">Edit</button></td>
+  </tr>`).join("");
+}
+
+function openLeadModal(id, status, note) {
+  document.getElementById("lead-id").value = id;
+  document.getElementById("lead-status").value = status;
+  document.getElementById("lead-note").value = note;
+  openModal("modal-lead");
+}
+
+async function submitLead() {
+  const id     = document.getElementById("lead-id").value;
+  const status = document.getElementById("lead-status").value;
+  const note   = document.getElementById("lead-note").value;
+  try {
+    await api(`/api/leads/${id}`, { method: "PATCH", body: JSON.stringify({ status, message: note }) });
+    toast("Lead updated", "success");
+    closeModal("modal-lead");
+    loadLeads();
+  } catch (e) {
+    toast(e.message, "error");
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  Payments
+// ─────────────────────────────────────────────────────────
+async function loadPayments() {
+  const tbody = document.getElementById("payments-table");
+  tbody.innerHTML = '<tr><td colspan="6" class="empty">Loading…</td></tr>';
+  try {
+    const rows = await api("/api/payments");
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No payments recorded yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(p => `<tr>
+      <td>${esc(p.username)}</td>
+      <td style="color:var(--green)"><strong>$${p.amount.toFixed(2)}</strong></td>
+      <td style="font-size:12px">${esc(p.method||"—")}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(p.reference||"—")}</td>
+      <td style="font-size:12px">${esc(p.note||"—")}</td>
+      <td style="font-size:11px;color:var(--muted)">${p.created_at?p.created_at.slice(0,10):"—"}</td>
+    </tr>`).join("");
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty">Error: ${e.message}</td></tr>`;
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  Events
+// ─────────────────────────────────────────────────────────
+async function loadEvents() {
+  const el = document.getElementById("events-list");
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const events = await api("/api/events");
+    renderEventFeed(events, "events-list");
+  } catch (e) {
+    el.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+  }
+}
+
+function renderEventFeed(events, containerId) {
+  const el = document.getElementById(containerId);
+  if (!events || !events.length) {
+    el.innerHTML = '<div class="empty">No events yet</div>';
+    return;
+  }
+  el.innerHTML = events.map(e => `
+    <div class="event-item">
+      <div class="event-dot"></div>
+      <div class="event-text">
+        <strong>${esc(e.type)}</strong>${e.username ? ` · ${esc(e.username)}` : ""}
+        ${e.description ? `<br><span style="color:var(--muted);font-size:12px">${esc(e.description)}</span>` : ""}
+      </div>
+      <div class="event-time">${e.created_at ? e.created_at.slice(0,16).replace("T"," ") : ""}</div>
+    </div>
+  `).join("");
+}
+
+// ─────────────────────────────────────────────────────────
+//  Modal helpers
+// ─────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+// Close modal on backdrop click
+document.querySelectorAll(".modal-overlay").forEach(o => {
+  o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
+});
+
+// ─────────────────────────────────────────────────────────
+//  Toast
+// ─────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = (type === "success" ? "✅ " : "❌ ") + msg;
+  t.className = "show " + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = "", 3000);
+}
+
+// ─────────────────────────────────────────────────────────
+//  Escape HTML
+// ─────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+</script>
+</body>
+</html>

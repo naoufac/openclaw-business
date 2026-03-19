@@ -1,0 +1,18 @@
+# Secrets
+.env
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Runtime data
+data/*.db
+data/*.log
+data/key-registry.txt
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
