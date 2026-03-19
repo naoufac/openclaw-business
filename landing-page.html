@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClawHost — Your Personal AI, Already Running</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0a0805;
+  --paper: #f5f0e8;
+  --warm: #e8dfc8;
+  --claw: #c8410a;
+  --claw-dark: #8b2d07;
+  --claw-light: #f4884a;
+  --gold: #c4970a;
+  --text: #2a1f14;
+  --muted: #7a6a55;
+  --border: #d4c4a8;
+  --premium: #1a3a2a;
+  --premium-light: #2d6b4a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.6;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 48px;
+  background: rgba(245,240,232,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: var(--claw);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--text); }
+
+.btn-nav {
+  background: var(--claw);
+  color: #fff !important;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 500 !important;
+  transition: background 0.2s !important;
+}
+
+.btn-nav:hover { background: var(--claw-dark) !important; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(200,65,10,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(200,65,10,0.1);
+  border: 1px solid rgba(200,65,10,0.25);
+  color: var(--claw);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin-bottom: 32px;
+  animation: fadeUp 0.6s ease both;
+}
+
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(72px, 14vw, 160px);
+  line-height: 0.9;
+  letter-spacing: 2px;
+  color: var(--ink);
+  margin-bottom: 8px;
+  animation: fadeUp 0.7s 0.1s ease both;
+}
+
+.hero h1 .accent { color: var(--claw); }
+
+.hero-sub {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px, 5vw, 56px);
+  letter-spacing: 3px;
+  color: var(--muted);
+  margin-bottom: 28px;
+  animation: fadeUp 0.7s 0.2s ease both;
+}
+
+.hero-desc {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--muted);
+  max-width: 540px;
+  line-height: 1.7;
+  margin-bottom: 44px;
+  animation: fadeUp 0.7s 0.3s ease both;
+}
+
+.hero-desc strong { color: var(--text); font-weight: 500; }
+
+.hero-cta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeUp 0.7s 0.4s ease both;
+}
+
+.btn-primary {
+  background: var(--claw);
+  color: #fff;
+  padding: 16px 36px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary:hover {
+  background: var(--claw-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(200,65,10,0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  padding: 16px 28px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 400;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover { border-color: var(--text); background: rgba(0,0,0,0.03); }
+
+.hero-note {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--muted);
+  animation: fadeUp 0.7s 0.5s ease both;
+}
+
+/* ── MARQUEE ── */
+.marquee-strip {
+  background: var(--ink);
+  padding: 14px 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.marquee-inner {
+  display: inline-block;
+  animation: marquee 28s linear infinite;
+}
+
+.marquee-item {
+  display: inline-block;
+  padding: 0 40px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--paper);
+  opacity: 0.7;
+}
+
+.marquee-item .sep { color: var(--claw); margin: 0 8px; }
+
+/* ── PAIN SECTION ── */
+.pain {
+  padding: 100px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--claw);
+  margin-bottom: 16px;
+}
+
+.pain-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-top: 48px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.pain-card {
+  background: var(--paper);
+  padding: 36px 32px;
+}
+
+.pain-card.before {
+  border-right: 1px solid var(--border);
+}
+
+.pain-card-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label-before { color: var(--muted); }
+.label-after { color: var(--claw); }
+
+.pain-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+
+.pain-list li {
+  font-size: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.pain-list li .icon { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+
+/* ── TWEETS ── */
+.social {
+  background: var(--warm);
+  padding: 100px 24px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.social-inner { max-width: 1100px; margin: 0 auto; }
+
+.tweet-scroll {
+  display: flex;
+  gap: 16px;
+  margin-top: 48px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  scrollbar-width: none;
+}
+
+.tweet-scroll::-webkit-scrollbar { display: none; }
+
+.tweet {
+  flex-shrink: 0;
+  width: 280px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s;
+}
+
+.tweet:hover { transform: translateY(-3px); }
+
+.tweet-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tweet-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--warm);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.tweet-handle { font-size: 12px; color: var(--muted); }
+.tweet-name { font-size: 13px; font-weight: 500; }
+.tweet-text { font-size: 13px; line-height: 1.6; color: var(--text); }
+.tweet-text strong { color: var(--claw); font-weight: 500; }
+
+/* ── PRICING ── */
+.pricing {
+  padding: 100px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.pricing-header { margin-bottom: 56px; }
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.plan {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--paper);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.plan:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.08);
+}
+
+.plan.featured {
+  border-color: var(--claw);
+  position: relative;
+}
+
+.plan.premium {
+  border-color: var(--premium-light);
+  background: var(--premium);
+  color: #d4e8dc;
+}
+
+.plan-top-bar {
+  height: 4px;
+}
+
+.plan-header {
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.plan.premium .plan-header { border-color: rgba(255,255,255,0.1); }
+
+.plan-badge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.plan-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.plan.premium .plan-name { color: #fff; }
+
+.plan-tagline {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--muted);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.plan.premium .plan-tagline { color: rgba(212,232,220,0.7); }
+
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.plan-amount {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.plan.premium .plan-amount { color: #fff; }
+
+.plan-period {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.plan.premium .plan-period { color: rgba(212,232,220,0.6); }
+
+.plan-tokens {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.plan.premium .plan-tokens { color: rgba(212,232,220,0.6); }
+
+.plan-body { padding: 24px 28px 28px; }
+
+.plan-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.plan-features li {
+  font-size: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.4;
+}
+
+.plan-features li .check {
+  flex-shrink: 0;
+  color: var(--claw);
+  font-size: 14px;
+  margin-top: 1px;
+}
+
+.plan.premium .plan-features li { color: #d4e8dc; }
+.plan.premium .plan-features li .check { color: #6ecf96; }
+
+.plan-cta {
+  display: block;
+  text-align: center;
+  padding: 13px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.plan-cta.cta-outline {
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: transparent;
+}
+
+.plan-cta.cta-outline:hover { border-color: var(--text); background: rgba(0,0,0,0.04); }
+
+.plan-cta.cta-fill {
+  background: var(--claw);
+  color: #fff;
+}
+
+.plan-cta.cta-fill:hover {
+  background: var(--claw-dark);
+  box-shadow: 0 6px 20px rgba(200,65,10,0.35);
+}
+
+.plan-cta.cta-premium {
+  background: #6ecf96;
+  color: var(--premium);
+}
+
+.plan-cta.cta-premium:hover { background: #85e0a8; }
+
+.featured-label {
+  position: absolute;
+  top: -1px; right: 24px;
+  background: var(--claw);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 0 0 8px 8px;
+}
+
+/* ── HOW IT WORKS ── */
+.how {
+  background: var(--warm);
+  padding: 100px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.how-inner { max-width: 800px; margin: 0 auto; }
+
+.steps { margin-top: 56px; display: flex; flex-direction: column; gap: 0; }
+
+.step {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 24px;
+  padding: 32px 0;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.step:last-child { border-bottom: none; }
+
+.step-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--border);
+  line-height: 1;
+  padding-top: 4px;
+  text-align: center;
+}
+
+.step-content {}
+
+.step-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.step-desc {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.step-code {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--claw-light);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  margin-top: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ── FAMILY PLAN CALLOUT ── */
+.family {
+  padding: 80px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.family-box {
+  background: var(--ink);
+  border-radius: 16px;
+  padding: 56px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.family-box::before {
+  content: '🦞';
+  position: absolute;
+  right: -20px; bottom: -40px;
+  font-size: 200px;
+  opacity: 0.04;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+
+.family-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--claw-light);
+  margin-bottom: 16px;
+}
+
+.family-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 1px;
+  color: #fff;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.family-desc {
+  font-size: 15px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.family-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  color: var(--claw-light);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.family-price-note {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 24px;
+}
+
+.family-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+}
+
+.slot-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(200,65,10,0.2);
+  border: 1px solid rgba(200,65,10,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.slot-info { flex: 1; }
+
+.slot-name { font-size: 13px; font-weight: 500; color: #fff; }
+.slot-tier { font-size: 11px; font-family: 'JetBrains Mono'; color: rgba(255,255,255,0.35); }
+.slot-status { font-size: 11px; color: #6ecf96; display: flex; align-items: center; gap: 5px; }
+.slot-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #6ecf96; display: block; box-shadow: 0 0 6px #6ecf96; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink);
+  color: rgba(255,255,255,0.4);
+  padding: 48px 48px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: var(--claw-light);
+  letter-spacing: 2px;
+}
+
+.footer-note { font-size: 12px; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 14px 20px; }
+  .nav-links { display: none; }
+  .pain-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .family-box { grid-template-columns: 1fr; padding: 36px 24px; }
+  footer { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">🦞 ClawHost</a>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#family">Family Plan</a></li>
+    <li><a href="#pricing" class="btn-nav">Get Started →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-tag">🦞 Powered by OpenClaw</div>
+  <h1>YOUR AI<br><span class="accent">LOBSTER</span></h1>
+  <div class="hero-sub">Already running. On Telegram. Right now.</div>
+  <p class="hero-desc">
+    OpenClaw is the most powerful personal AI assistant ever built.<br>
+    <strong>The problem: installing it is a nightmare.</strong><br>
+    We did it for you.
+  </p>
+  <div class="hero-cta">
+    <a href="#pricing" class="btn-primary">Get your lobster →</a>
+    <a href="#how" class="btn-secondary">See how it works</a>
+  </div>
+  <p class="hero-note">Live in 60 seconds · No terminal · No config · Just Telegram</p>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-strip">
+  <div class="marquee-inner">
+    <span class="marquee-item">TELEGRAM <span class="sep">·</span> WHATSAPP <span class="sep">·</span> DISCORD</span>
+    <span class="marquee-item">PERSISTENT MEMORY <span class="sep">·</span> BROWSER CONTROL <span class="sep">·</span> SKILLS</span>
+    <span class="marquee-item">GMAIL <span class="sep">·</span> CALENDAR <span class="sep">·</span> GITHUB <span class="sep">·</span> SPOTIFY</span>
+    <span class="marquee-item">3-LAYER BRAIN <span class="sep">·</span> NIGHTLY CONSOLIDATION <span class="sep">·</span> SELF-IMPROVING</span>
+    <span class="marquee-item">TELEGRAM <span class="sep">·</span> WHATSAPP <span class="sep">·</span> DISCORD</span>
+    <span class="marquee-item">PERSISTENT MEMORY <span class="sep">·</span> BROWSER CONTROL <span class="sep">·</span> SKILLS</span>
+    <span class="marquee-item">GMAIL <span class="sep">·</span> CALENDAR <span class="sep">·</span> GITHUB <span class="sep">·</span> SPOTIFY</span>
+    <span class="marquee-item">3-LAYER BRAIN <span class="sep">·</span> NIGHTLY CONSOLIDATION <span class="sep">·</span> SELF-IMPROVING</span>
+  </div>
+</div>
+
+<!-- PAIN -->
+<section class="pain">
+  <p class="section-label">The problem we solve</p>
+  <h2 style="font-family:'Bebas Neue',sans-serif; font-size:clamp(36px,6vw,72px); letter-spacing:1px; line-height:1; max-width:700px;">
+    OpenClaw is incredible.<br>
+    <span style="color:var(--muted)">Setting it up is hell.</span>
+  </h2>
+
+  <div class="pain-grid">
+    <div class="pain-card before">
+      <div class="pain-card-label label-before">😅 DIY Install</div>
+      <ul class="pain-list">
+        <li><span class="icon">💀</span> Install Node.js, pnpm, git, Homebrew…</li>
+        <li><span class="icon">💀</span> Debug PATH errors in your terminal</li>
+        <li><span class="icon">💀</span> Configure Telegram bot tokens manually</li>
+        <li><span class="icon">💀</span> Figure out memory layers, cron jobs, heartbeats</li>
+        <li><span class="icon">💀</span> Set up Neo4j for the knowledge graph</li>
+        <li><span class="icon">💀</span> Keep it running when your laptop sleeps</li>
+        <li><span class="icon">💀</span> Start over when something breaks</li>
+      </ul>
+    </div>
+    <div class="pain-card after">
+      <div class="pain-card-label label-after">🦞 ClawHost</div>
+      <ul class="pain-list">
+        <li><span class="icon">✅</span> Choose a plan</li>
+        <li><span class="icon">✅</span> Pay with card</li>
+        <li><span class="icon">✅</span> Get a Telegram link</li>
+        <li><span class="icon">✅</span> Message your lobster</li>
+        <li><span class="icon" style="opacity:0">·</span></li>
+        <li><span class="icon" style="opacity:0">·</span></li>
+        <li><span style="font-size:13px; color:var(--muted); font-style:italic">That's literally it.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="social">
+  <div class="social-inner">
+    <p class="section-label">What people say about OpenClaw</p>
+    <h2 style="font-family:'Bebas Neue',sans-serif; font-size:clamp(32px,5vw,56px); letter-spacing:1px; max-width:600px;">
+      The internet is losing its mind over this thing.
+    </h2>
+
+    <div class="tweet-scroll">
+      <div class="tweet">
+        <div class="tweet-user">
+          <div class="tweet-avatar">🧑</div>
+          <div><div class="tweet-name">@davemorin</div><div class="tweet-handle">twitter</div></div>
+        </div>
+        <p class="tweet-text">"This is the first time I have felt like I am living in the future since the launch of ChatGPT."</p>
+      </div>
+      <div class="tweet">
+        <div class="tweet-user">
+          <div class="tweet-avatar">👩</div>
+          <div><div class="tweet-name">@therno</div><div class="tweet-handle">twitter</div></div>
+        </div>
+        <p class="tweet-text">"It's <strong>running my company.</strong>"</p>
+      </div>
+      <div class="tweet">
+        <div class="tweet-user">
+          <div class="tweet-avatar">🧔</div>
+          <div><div class="tweet-name">@nateliason</div><div class="tweet-handle">twitter</div></div>
+        </div>
+        <p class="tweet-text">"Managing Claude Code sessions I can kick off anywhere, autonomously running tests... <strong>The future is here.</strong>"</p>
+      </div>
+      <div class="tweet">
+        <div class="tweet-user">
+          <div class="tweet-avatar">🎭</div>
+          <div><div class="tweet-name">@danpeguine</div><div class="tweet-handle">twitter</div></div>
+        </div>
+        <p class="tweet-text">"'Personal AI assistant' undersells it — it's a <strong>company assistant, family assistant, team tool.</strong>"</p>
+      </div>
+      <div class="tweet">
+        <div class="tweet-user">
+          <div class="tweet-avatar">🦁</div>
+          <div><div class="tweet-name">@lycfyi</div><div class="tweet-handle">twitter</div></div>
+        </div>
+        <p class="tweet-text">"Design, code review, taxes, PM, content pipelines... <strong>AI as teammate, not tool.</strong>"</p>
+      </div>
+      <div class="tweet">
+        <div class="tweet-user">
+          <div class="tweet-avatar">🐙</div>
+          <div><div class="tweet-name">@Hesamation</div><div class="tweet-handle">twitter</div></div>
+        </div>
+        <p class="tweet-text">"A dude and a repo fills in the cracks of billion dollar industries. <strong>Welcome to the AI era.</strong>"</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <p class="section-label">Simple as it gets</p>
+    <h2 style="font-family:'Bebas Neue',sans-serif; font-size:clamp(40px,7vw,80px); letter-spacing:1px; line-height:1;">
+      From zero to lobster<br><span style="color:var(--muted)">in 60 seconds.</span>
+    </h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">Pick your plan</div>
+          <p class="step-desc">Standard, Pro, or the full Founder Config with 3-layer memory — Peter Steinberger's (OpenClaw creator) own proven setup.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">Pay with card</div>
+          <p class="step-desc">Stripe checkout. Monthly subscription. Cancel any time. We start spinning up your lobster before you hit the confirm button.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">Get your Telegram link</div>
+          <p class="step-desc">Your dedicated bot link lands in your inbox. One tap on your phone.</p>
+          <span class="step-code">t.me/your_personal_claw_bot</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <div class="step-title">Say hello to your lobster</div>
+          <p class="step-desc">It already knows how to manage your email, browse the web, remember everything, and build its own skills. You just… talk to it.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="pricing-header">
+    <p class="section-label">Simple pricing</p>
+    <h2 style="font-family:'Bebas Neue',sans-serif; font-size:clamp(40px,7vw,80px); letter-spacing:1px; line-height:1;">
+      Your lobster.<br><span style="color:var(--muted)">Your price.</span>
+    </h2>
+  </div>
+
+  <div class="pricing-grid">
+
+    <!-- STANDARD -->
+    <div class="plan">
+      <div class="plan-top-bar" style="background: var(--border);"></div>
+      <div class="plan-header">
+        <span class="plan-badge" style="background:rgba(0,0,0,0.05); color:var(--muted);">Starter</span>
+        <div class="plan-name">Standard</div>
+        <p class="plan-tagline">A personal AI that actually does things. On Telegram. 24/7.</p>
+        <div class="plan-price">
+          <span class="plan-amount">$19</span>
+          <span class="plan-period">/month</span>
+        </div>
+        <div class="plan-tokens">~1.5M tokens included</div>
+      </div>
+      <div class="plan-body">
+        <ul class="plan-features">
+          <li><span class="check">✓</span> OpenClaw hosted & pre-configured</li>
+          <li><span class="check">✓</span> Telegram bot, ready in 60 seconds</li>
+          <li><span class="check">✓</span> Daily memory (remembers your chats)</li>
+          <li><span class="check">✓</span> 15+ skills pre-loaded</li>
+          <li><span class="check">✓</span> Gmail, Calendar, web browsing</li>
+          <li><span class="check">✓</span> Credit usage dashboard</li>
+          <li><span class="check">✓</span> Email support</li>
+        </ul>
+        <a href="#" class="plan-cta cta-outline">Get Standard →</a>
+      </div>
+    </div>
+
+    <!-- PRO (featured) -->
+    <div class="plan featured">
+      <span class="featured-label">Most Popular</span>
+      <div class="plan-top-bar" style="background: var(--claw);"></div>
+      <div class="plan-header">
+        <span class="plan-badge" style="background:rgba(200,65,10,0.1); color:var(--claw);">Pro</span>
+        <div class="plan-name">Pro</div>
+        <p class="plan-tagline">More memory, more power, multi-agent. The one most people want.</p>
+        <div class="plan-price">
+          <span class="plan-amount">$49</span>
+          <span class="plan-period">/month</span>
+        </div>
+        <div class="plan-tokens">~5M tokens included</div>
+      </div>
+      <div class="plan-body">
+        <ul class="plan-features">
+          <li><span class="check">✓</span> Everything in Standard</li>
+          <li><span class="check">✓</span> WhatsApp channel included</li>
+          <li><span class="check">✓</span> Nightly memory consolidation (2AM)</li>
+          <li><span class="check">✓</span> Heartbeat monitor — proactive nudges</li>
+          <li><span class="check">✓</span> Multi-agent threads (2 parallel tasks)</li>
+          <li><span class="check">✓</span> 30-day memory backups</li>
+          <li><span class="check">✓</span> Priority email support</li>
+        </ul>
+        <a href="#" class="plan-cta cta-fill">Get Pro →</a>
+      </div>
+    </div>
+
+    <!-- PREMIUM -->
+    <div class="plan premium">
+      <div class="plan-top-bar" style="background: var(--premium-light);"></div>
+      <div class="plan-header">
+        <span class="plan-badge" style="background:rgba(110,207,150,0.15); color:#6ecf96;">🦞 Founder Config</span>
+        <div class="plan-name">Premium</div>
+        <p class="plan-tagline">The exact setup Peter Steinberger (creator) and Nat Eliason run. Proven optimum.</p>
+        <div class="plan-price">
+          <span class="plan-amount">$99</span>
+          <span class="plan-period">/month</span>
+        </div>
+        <div class="plan-tokens">~15M tokens included</div>
+      </div>
+      <div class="plan-body">
+        <ul class="plan-features">
+          <li><span class="check">✓</span> <strong style="color:#fff">Full 3-layer memory</strong> (daily + graph + tacit)</li>
+          <li><span class="check">✓</span> Neo4j Knowledge Graph — entity relationships</li>
+          <li><span class="check">✓</span> QMD fast search index — instant recall</li>
+          <li><span class="check">✓</span> Auto-improve: agent refines its own prompt</li>
+          <li><span class="check">✓</span> 5 parallel multi-agent threads</li>
+          <li><span class="check">✓</span> Secrets vault (least-privilege isolation)</li>
+          <li><span class="check">✓</span> WhatsApp + Discord + Telegram</li>
+          <li><span class="check">✓</span> Onboarding call (30 min) + priority support</li>
+        </ul>
+        <a href="#" class="plan-cta cta-premium">Get Founder Config →</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FAMILY PLAN -->
+<section class="family" id="family">
+  <div class="family-box">
+    <div>
+      <div class="family-eyebrow">Group / Family Plan</div>
+      <div class="family-title">One server.<br>5 lobsters.</div>
+      <p class="family-desc">
+        Perfect for families, small teams, or friend groups. Everyone gets their own private AI assistant — shared infrastructure, individual memory, total isolation.
+      </p>
+      <div class="family-price">$199<span style="font-size:18px; color:rgba(255,255,255,0.4)">/month</span></div>
+      <p class="family-price-note">Up to 5 people · Mix of Standard + Pro tiers · Save ~40% vs individual plans</p>
+      <a href="#" class="btn-primary" style="background:var(--claw-light)">Get Family Plan →</a>
+    </div>
+    <div class="family-slots">
+      <div class="slot">
+        <div class="slot-avatar">👩</div>
+        <div class="slot-info">
+          <div class="slot-name">Sarah</div>
+          <div class="slot-tier">premium · telegram + whatsapp</div>
+        </div>
+        <div class="slot-status">live</div>
+      </div>
+      <div class="slot">
+        <div class="slot-avatar">👨</div>
+        <div class="slot-info">
+          <div class="slot-name">Marc</div>
+          <div class="slot-tier">pro · telegram</div>
+        </div>
+        <div class="slot-status">live</div>
+      </div>
+      <div class="slot">
+        <div class="slot-avatar">🧒</div>
+        <div class="slot-info">
+          <div class="slot-name">Emma</div>
+          <div class="slot-tier">standard · telegram</div>
+        </div>
+        <div class="slot-status">live</div>
+      </div>
+      <div class="slot" style="opacity:0.4; border-style:dashed;">
+        <div class="slot-avatar" style="opacity:0.3">➕</div>
+        <div class="slot-info">
+          <div class="slot-name" style="color:rgba(255,255,255,0.3)">Add slot 4</div>
+          <div class="slot-tier">available</div>
+        </div>
+      </div>
+      <div class="slot" style="opacity:0.4; border-style:dashed;">
+        <div class="slot-avatar" style="opacity:0.3">➕</div>
+        <div class="slot-info">
+          <div class="slot-name" style="color:rgba(255,255,255,0.3)">Add slot 5</div>
+          <div class="slot-tier">available</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">🦞 ClawHost</div>
+  <div class="footer-note">Independent service. Not affiliated with openclaw.ai or Anthropic. OpenClaw is open-source (MIT).</div>
+  <div class="footer-note">hello@clawhost.com</div>
+</footer>
+
+</body>
+</html>

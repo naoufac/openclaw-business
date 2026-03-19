@@ -1,0 +1,209 @@
+version: "3.9"
+
+# ============================================================
+#  OpenClaw Family Server — 8GB VPS
+#  Up to 5 isolated lobsters. OpenRouter as default LLM router.
+#
+#  Each user:
+#  - Has their own container + private volume
+#  - Uses their own OpenRouter API key (credit limited)
+#  - Can pick any model (claude, gpt-4o, gemini, llama...)
+#  - Is fully isolated — cannot touch other users' files
+#
+#  RAM budget (8GB VPS):
+#  OS + nginx + credit-api  ≈ 600MB
+#  2x Premium @ 2GB each    = 4GB
+#  2x Standard @ 1GB each   = 2GB
+#  Buffer                   = 1.4GB ✅
+# ============================================================
+
+services:
+
+  # ── Nginx: routes web traffic ──
+  nginx:
+    image: nginx:alpine
+    container_name: claw-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    networks:
+      - claw-net
+
+  # ── Credit API: tracks usage, holds OpenRouter key hashes ──
+  credit-api:
+    image: node:20-alpine
+    container_name: claw-credits
+    working_dir: /app
+    volumes:
+      - ./credit-api:/app
+      - credits-db:/app/data
+    command: sh -c "npm install --prefer-offline && node server.js"
+    environment:
+      PORT: 3100
+      OPENROUTER_PROVISIONING_KEY: "${OPENROUTER_PROVISIONING_KEY}"
+    restart: unless-stopped
+    networks:
+      - claw-net
+
+  # ════════════════════════════
+  #  USER 1 — 2GB RAM (Premium)
+  # ════════════════════════════
+  claw-alice:
+    image: node:20-alpine
+    container_name: claw-alice
+    working_dir: /home/claw
+    volumes:
+      - alice-data:/home/claw/.openclaw          # private — only Alice
+      - ./shared-skills:/home/claw/.openclaw/skills/shared:ro  # read-only
+      - openclaw-cache:/root/.npm                # shared npm cache (no user data)
+    environment:
+      OPENCLAW_USER: alice
+      TELEGRAM_BOT_TOKEN: "${ALICE_BOT_TOKEN}"
+      OPENAI_BASE_URL: "https://openrouter.ai/api/v1"
+      OPENAI_API_KEY: "${ALICE_OPENROUTER_KEY}"  # provisioned by add-claw.sh
+      OPENCLAW_MODEL: "anthropic/claude-sonnet-4-5"
+      OPENCLAW_TIER: premium
+      CREDIT_API_URL: "http://credit-api:3100"
+      MEMORY_DAILY: "true"
+      MEMORY_GRAPH: "true"
+      MEMORY_TACIT: "true"
+      HEARTBEAT: "true"
+      NIGHTLY_CRON: "true"
+    command: sh -c "npm install -g openclaw --prefer-offline 2>/dev/null || npm install -g openclaw && openclaw start --headless"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=200m,mode=1777
+      - /root/.config:size=50m
+      - /root/.local:size=50m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    mem_limit: 2g
+    mem_reservation: 512m
+    cpus: "1.0"
+    networks:
+      - claw-net
+    depends_on:
+      - credit-api
+
+  # ═════════════════════════════
+  #  USER 2 — 1GB RAM (Standard)
+  # ═════════════════════════════
+  claw-bob:
+    image: node:20-alpine
+    container_name: claw-bob
+    working_dir: /home/claw
+    volumes:
+      - bob-data:/home/claw/.openclaw
+      - ./shared-skills:/home/claw/.openclaw/skills/shared:ro
+      - openclaw-cache:/root/.npm
+    environment:
+      OPENCLAW_USER: bob
+      TELEGRAM_BOT_TOKEN: "${BOB_BOT_TOKEN}"
+      OPENAI_BASE_URL: "https://openrouter.ai/api/v1"
+      OPENAI_API_KEY: "${BOB_OPENROUTER_KEY}"
+      OPENCLAW_MODEL: "anthropic/claude-haiku-4-5"
+      OPENCLAW_TIER: standard
+      CREDIT_API_URL: "http://credit-api:3100"
+      MEMORY_DAILY: "true"
+      MEMORY_GRAPH: "false"
+      MEMORY_TACIT: "false"
+      HEARTBEAT: "false"
+      NIGHTLY_CRON: "false"
+    command: sh -c "npm install -g openclaw --prefer-offline 2>/dev/null || npm install -g openclaw && openclaw start --headless"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=200m,mode=1777
+      - /root/.config:size=50m
+      - /root/.local:size=50m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    mem_limit: 1g
+    mem_reservation: 256m
+    cpus: "0.6"
+    networks:
+      - claw-net
+    depends_on:
+      - credit-api
+
+  # ═════════════════════════════
+  #  USER 3 — 2GB RAM (Premium)
+  # ═════════════════════════════
+  claw-carol:
+    image: node:20-alpine
+    container_name: claw-carol
+    working_dir: /home/claw
+    volumes:
+      - carol-data:/home/claw/.openclaw
+      - ./shared-skills:/home/claw/.openclaw/skills/shared:ro
+      - openclaw-cache:/root/.npm
+    environment:
+      OPENCLAW_USER: carol
+      TELEGRAM_BOT_TOKEN: "${CAROL_BOT_TOKEN}"
+      OPENAI_BASE_URL: "https://openrouter.ai/api/v1"
+      OPENAI_API_KEY: "${CAROL_OPENROUTER_KEY}"
+      OPENCLAW_MODEL: "anthropic/claude-sonnet-4-5"
+      OPENCLAW_TIER: premium
+      CREDIT_API_URL: "http://credit-api:3100"
+      MEMORY_DAILY: "true"
+      MEMORY_GRAPH: "true"
+      MEMORY_TACIT: "true"
+      HEARTBEAT: "true"
+      NIGHTLY_CRON: "true"
+    command: sh -c "npm install -g openclaw --prefer-offline 2>/dev/null || npm install -g openclaw && openclaw start --headless"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=200m,mode=1777
+      - /root/.config:size=50m
+      - /root/.local:size=50m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    mem_limit: 2g
+    mem_reservation: 512m
+    cpus: "1.0"
+    networks:
+      - claw-net
+    depends_on:
+      - credit-api
+
+  # To add users 4 and 5: copy any block above,
+  # change the name, token var, and volume name.
+  # Then run: ./add-claw.sh <n> <token> <tier>
+
+# ── Volumes: each user's data is 100% private ──
+volumes:
+  alice-data:
+  bob-data:
+  carol-data:
+  credits-db:
+  openclaw-cache:   # shared npm packages only — no user data
+
+networks:
+  claw-net:
+    driver: bridge
