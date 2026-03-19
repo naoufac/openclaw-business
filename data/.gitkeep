@@ -1,0 +1,9 @@
+# data/
+# This directory is created automatically by add-claw.sh and stores:
+#   - key-registry.txt  (per-user OpenRouter key hashes)
+#   - admin.db          (admin dashboard database)
+#   - credits.db        (credit tracking database)
+#   - *.log             (health, billing, report logs)
+#
+# All database and log files are gitignored.
+# This .gitkeep ensures the directory exists in the repository.

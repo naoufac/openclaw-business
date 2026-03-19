@@ -1,0 +1,11 @@
+# shared-skills/
+# Place shared OpenClaw skill files here.
+# This directory is mounted read-only into every client container.
+# Skills here are available to all users but no user can modify them.
+#
+# Structure:
+#   shared-skills/
+#     my-skill.js     ← shared skill available to all users
+#     another-skill/  ← skills can also be directories
+#
+# See OpenClaw docs for the skill format.
